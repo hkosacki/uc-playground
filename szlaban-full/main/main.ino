@@ -11,7 +11,7 @@
 #define INT_1 2
 #define INT_2 3
 
-const long BUZZING_TIME = 4000;
+const long BUZZING_TIME = 3000;
 const long BLINK_DELAY = 500;
 
 Servo lock1, lock2;
@@ -61,22 +61,23 @@ void disableLock(){
 }
 
 long measuredTime = 0;
-void blinkLed(){
+void block(){
   measuredTime = millis();
   
   blinkThings();
   measuredTime = millis();
-  if(rotateWing(DOWN)){
-   // buzz
-    if(measuredTime - blinkTime < BLINK_DELAY){
+  
+  // buzz
+  if(measuredTime - startTime > BUZZING_TIME && !rotateWing(DOWN)){
+    tearDownBuzzer();
+  } else {
+    int buzzingTime = measuredTime - blinkTime;
+    if(buzzingTime < BLINK_DELAY){
       digitalWrite(BUZZER, HIGH);
     }
-    else if(measuredTime - blinkTime < 2*BLINK_DELAY){
+    else if(buzzingTime < 2*BLINK_DELAY){
       digitalWrite(BUZZER, LOW);
     }
-  }
-  else {
-    tearDownBuzzer();
   }
   
 }
@@ -86,7 +87,7 @@ bool rotateWing(ServoDirection dir){
 //  Serial.println("curr pos: " + String(currentPosition) + ", going " + String(dir));
   if(currentPosition == dir) return false;
 //  Serial.println("diff " + String(measuredTime - rotateTime));
-  if(measuredTime - rotateTime > 100){
+  if(measuredTime - rotateTime > 50){
 //    Serial.println("Entered rotation: " + String(dir));
     rotateTime = measuredTime;
     int step = dir == UP ? -1 : 1;
@@ -120,7 +121,7 @@ void setup() {
 
 void loop() {
   if(shouldBlock){
-    blinkLed();
+    block();
   } else {
     unblock();
   }
